@@ -18,7 +18,7 @@ def unload_one_good(dw:WD, lc_link_on_good: str, pc_price:str):
     print(f'{Fore.YELLOW}Цена: {Fore.LIGHTGREEN_EX}{lo_good.price}{Fore.RESET}')
     print(f'{Fore.YELLOW}Описание: {Fore.LIGHTGREEN_EX}{lo_good.description}{Fore.RESET}')
     print(f'{Fore.YELLOW}Картинки: {Fore.LIGHTCYAN_EX}{lo_good.pictures}{Fore.RESET}')
-    print(f'{Fore.YELLOW}Цвет: {Fore.LIGHTCYAN_EX}{lo_good.color}{Fore.RESET}')
+    print(f'{Fore.YELLOW}Цвет: {Fore.LIGHTCYAN_EX} {(lo_good.color if len(lo_good.color)>0 else lo_good.colors)} {Fore.RESET}')
     print(f'{Fore.YELLOW}Размеры: {Fore.LIGHTCYAN_EX}{lo_good.sizes}{Fore.RESET}')
     return lo_good
 
@@ -43,8 +43,8 @@ if sys.argv[1] == 'good':
                                 '15',
                                 prepare_str(link),
                                 prepare_for_csv_non_list(lo_good.pictures),
-                                prepare_str(lo_good.color),
-                                prepare_for_csv_list(lo_good.colors))
+                                (prepare_str(lo_good.color) if len(lo_good.color)>0 else prepare_for_csv_list(lo_good.colors)),
+                                prepare_for_csv_list(lo_good.sizes))
         price.write_to_csv(sys.argv[3])
 
 if sys.argv[1] == 'catalog':
@@ -73,8 +73,8 @@ if sys.argv[1] == 'catalog':
                                 '15',
                                 prepare_str(link),
                                 prepare_for_csv_non_list(lo_good.pictures),
-                                prepare_str(lo_good.color),
-                                prepare_for_csv_list(lo_good.colors))
+                                (prepare_str(lo_good.color) if len(lo_good.color)>0 else prepare_for_csv_list(lo_good.colors)),
+                                prepare_for_csv_list(lo_good.sizes))
         price.write_to_csv(sys.argv[3])
 
 if sys.argv[1] == 'reverse':

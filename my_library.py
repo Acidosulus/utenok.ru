@@ -133,10 +133,9 @@ class Price:
 
 	def write_to_csv(self, file_name):
 		if os.path.isfile(file_name):
-			file = open(file_name, mode='a', encoding='utf-8', errors = 'ignore')
+			file = open(file_name, mode='a', encoding='1251', errors = 'ignore')
 		else:
-			file = open(file_name, mode='w', encoding='utf-8', errors = 'ignore')
-
+			file = open(file_name, mode='w', encoding='1251', errors = 'ignore')
 		for gd in self.goods:
 			lc_str = ''
 			for col in gd:

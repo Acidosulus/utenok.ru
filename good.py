@@ -44,22 +44,35 @@ class Good:
 		pictures = soup.find_all('div',{'class':'details-carousel-item-vertical'})
 		for picture in pictures:
 			lc = sx(  str(picture).replace(' ',''),  "'originalPath':'", "'")
-			append_if_not_exists(lc, self.pictures)
+			if len(self.pictures)<12:
+				append_if_not_exists(lc, self.pictures)
 		
 		
 		self.price = soup.find('div', {'class':'price-number'}).text.strip()
 		#str_to_file('price.txt', self.price)
 
 		lc_source = (ol.page_source).replace(chr(13),'').replace(chr(9),' ').replace(chr(10),'').replace(chr(12),'')
-		#str_to_file('source.html', lc_source )
+		str_to_file('source.html', lc_source )
 		lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number">  {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
-		if len(lc)==0:
+		if len(lc)<50:
 			lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number"> {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
 		for i in range(lc.count('<div class="block-size-product">')):
 			lc_size = sx( lc, '<div class="block-size-product">', '</div>', i+1)
 			append_if_not_exists(lc_size, self.sizes)
 
+		if len(self.sizes)==0:
+			lc = sx(ol.page_source, '<div class="details-payment-block">', '<div class="details-payment-cell details-payment-price"')
+			for i in range(lc.count('<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">')):
+				lcs = sx(lc,'<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">','</div>',i+1)
+				if '<link itemprop="availability"' in lcs:
+					append_if_not_exists(sx(lcs, 'meta itemprop="sku" content="', '">'), self.sizes)
+
+		
 		self.color = sx(lc_source, '&quot;ColorName&quot;:&quot;','&')
+		if len(self.color)==0:
+			lc = sx(ol.page_source, '<p>Имееться опция <strong>Расцветка</strong> Со значениями:<br>','</p>')
+			for i in range(lc.count('<strong>')):
+				self.colors.append(sx(lc,'<strong>','</strong>',i+1))
 		
 		self.price = self.price.replace(' ','')
 		return
