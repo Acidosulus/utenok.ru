@@ -24,13 +24,14 @@ class Good:
 		self.description= ''
 		self.price = 0
 		self.brand = ''
+		self.sale = False
 		echo(style('Товар: ', fg='bright_yellow') + style(pc_good_link, fg='bright_white') + style('  Прайс:', fg='bright_cyan') + style(pc_price, fg='bright_green'))
 
 		ol.Get_HTML(pc_good_link)
 		soup = BS(ol.page_source, features='html5lib')
 
-
-		
+		if '<span class="gallery-picture-labels"><div class="products-view-label"><span class="products-view-label-inner products-view-label-discount">Скидка' in ol.page_source:
+			self.sale = True
 
 		self.article = soup.find('div',{'class':'details-param-value inplace-offset'}).text
 		self.name = soup.find('h1').text.strip()
@@ -50,22 +51,27 @@ class Good:
 		
 		self.price = soup.find('div', {'class':'price-number'}).text.strip()
 		#str_to_file('price.txt', self.price)
-
+		
 		lc_source = (ol.page_source).replace(chr(13),'').replace(chr(9),' ').replace(chr(10),'').replace(chr(12),'')
-		str_to_file('source.html', lc_source )
-		lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number">  {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
-		if len(lc)<50:
-			lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number"> {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
-		for i in range(lc.count('<div class="block-size-product">')):
-			lc_size = sx( lc, '<div class="block-size-product">', '</div>', i+1)
-			append_if_not_exists(lc_size, self.sizes)
+		if False:
+			
+			str_to_file('source.html', lc_source )
+			lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number">  {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
+			if len(lc)<50:
+				lc = sx( lc_source, f'<div class="price-current cs-t-1"><div class="price-number"> {self.price}</div> <div class="price-currency"> руб.</div></div>                    </div>                </div>            </div>', '<div class="products-view-block cs-br-1 js-products-view-block"')
+			for i in range(lc.count('<div class="block-size-product">')):
+				lc_size = sx( lc, '<div class="block-size-product">', '</div>', i+1)
+				append_if_not_exists(lc_size, self.sizes)
 
+
+		lc_pure_art = sx(soup.find('title').text.strip() + '|', 'арт.', '|')
 		if len(self.sizes)==0:
 			lc = sx(ol.page_source, '<div class="details-payment-block">', '<div class="details-payment-cell details-payment-price"')
 			for i in range(lc.count('<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">')):
 				lcs = sx(lc,'<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">','</div>',i+1)
 				if '<link itemprop="availability"' in lcs:
-					append_if_not_exists(sx(lcs, 'meta itemprop="sku" content="', '">'), self.sizes)
+					self.prices.append(sx(lcs, '<meta itemprop="price" content="', '">').replace(lc_pure_art+' ', ''))
+					self.sizes.append(sx(lcs, 'meta itemprop="sku" content="', '">').replace(lc_pure_art+'_', ''))
 
 		
 		self.color = sx(lc_source, '&quot;ColorName&quot;:&quot;','&')

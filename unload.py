@@ -19,6 +19,7 @@ def unload_one_good(dw:WD, lc_link_on_good: str, pc_price:str):
     print(f'{Fore.YELLOW}Описание: {Fore.LIGHTGREEN_EX}{lo_good.description}{Fore.RESET}')
     print(f'{Fore.YELLOW}Картинки: {Fore.LIGHTCYAN_EX}{lo_good.pictures}{Fore.RESET}')
     print(f'{Fore.YELLOW}Цвет: {Fore.LIGHTCYAN_EX} {(lo_good.color if len(lo_good.color)>0 else lo_good.colors)} {Fore.RESET}')
+    print(f'{Fore.YELLOW}Цены {Fore.LIGHTBLUE_EX}{lo_good.prices}{Fore.RESET}')
     print(f'{Fore.YELLOW}Размеры: {Fore.LIGHTCYAN_EX}{lo_good.sizes}{Fore.RESET}')
     return lo_good
 
@@ -33,19 +34,44 @@ if sys.argv[1] == 'good':
     wd = Login()
     print(sys.argv[1], sys.argv[2])
     price = Price(sys.argv[3])
+    ln_counter = 0
     for link in [sys.argv[2]]:
+        ln_counter += 1
+        echo(style(f'{ln_counter}/{len([sys.argv[2]])}', fg='bright_blue'))
+        if is_price_have_link(sys.argv[3], link):
+            print('Товар уже имеется в прайсе')
+            echo(style('Товар уже имеется в прайсе', fg='bright_red'))
+            continue
         lo_good = unload_one_good(wd, link, sys.argv[3])
         lc_name = lo_good.name if lo_good.name.count(lo_good.article) != 0 else lo_good.article + ' ' + lo_good.name
-        price.add_good('',
+        #if 'Под заказ' in lo_good.description:
+        #    echo(style('Под заказ', fg='bright_red'))
+        #    continue
+        ll_unique = list(set(lo_good.prices))
+        print('Уникальные цены: ', ll_unique)
+        if len(lo_good.prices) != len(lo_good.sizes):
+            print('Несоответствие количества цен и количества товаров, пропуск.')
+            continue
+        for lc_uprice  in ll_unique:
+            j = 0
+            ll_sizes = []
+            ll_prices = []
+            for lc_price in lo_good.prices:
+                if lo_good.prices[j] == lc_uprice:
+                    try:
+                        ll_sizes.append(lo_good.sizes[j])
+                    except:pass
+                j = j + 1
+            price.add_good('',
                                 prepare_str(lc_name),
                                 prepare_str(lo_good.description),
-                                prepare_str( str(round(float(lo_good.price)*float(sys.argv[4]), 2))),
+                                prepare_str( str(round(float(lc_uprice.replace(',', '.').replace(' ', ''))*(1 if lo_good.sale else float(sys.argv[4])), 2))),
                                 '15',
                                 prepare_str(link),
                                 prepare_for_csv_non_list(lo_good.pictures),
                                 (prepare_str(lo_good.color) if len(lo_good.color)>0 else prepare_for_csv_list(lo_good.colors)),
-                                prepare_for_csv_list(lo_good.sizes))
-        price.write_to_csv(sys.argv[3])
+                                prepare_for_csv_list(ll_sizes))
+            price.write_to_csv(sys.argv[3])
 
 if sys.argv[1] == 'catalog':
     wd = Login()
@@ -66,16 +92,31 @@ if sys.argv[1] == 'catalog':
         #if 'Под заказ' in lo_good.description:
         #    echo(style('Под заказ', fg='bright_red'))
         #    continue
-        price.add_good('',
+        ll_unique = list(set(lo_good.prices))
+        print('Уникальные цены: ', ll_unique)
+        if len(lo_good.prices) != len(lo_good.sizes):
+            print('Несоответствие количества цен и количества товаров, пропуск.')
+            continue
+        for lc_uprice  in ll_unique:
+            j = 0
+            ll_sizes = []
+            ll_prices = []
+            for lc_price in lo_good.prices:
+                if lo_good.prices[j] == lc_uprice:
+                    try:
+                        ll_sizes.append(lo_good.sizes[j])
+                    except:pass
+                j = j + 1
+            price.add_good('',
                                 prepare_str(lc_name),
                                 prepare_str(lo_good.description),
-                                prepare_str( str(round(float(lo_good.price)*float(sys.argv[4]), 2))),
+                                prepare_str( str(round(float(lc_uprice.replace(',', '.').replace(' ', ''))*(1 if lo_good.sale else float(sys.argv[4])), 2))),
                                 '15',
                                 prepare_str(link),
                                 prepare_for_csv_non_list(lo_good.pictures),
                                 (prepare_str(lo_good.color) if len(lo_good.color)>0 else prepare_for_csv_list(lo_good.colors)),
-                                prepare_for_csv_list(lo_good.sizes))
-        price.write_to_csv(sys.argv[3])
+                                prepare_for_csv_list(ll_sizes))
+            price.write_to_csv(sys.argv[3])
 
 if sys.argv[1] == 'reverse':
     reverse_csv_price(sys.argv[2])
