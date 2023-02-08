@@ -21,7 +21,8 @@ import uuid
 
 class WD:
 	def init(self):
-		self.site_url = 'https://utenok.ru/'
+		#self.site_url = 'https://utenok.ru/'
+		self.site_url = 'http://saas_87809_pfthxiqmxg_utenock.u.on-advantshop.net/'
 		config = configparser.ConfigParser()
 
 
